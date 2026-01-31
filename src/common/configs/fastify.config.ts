@@ -1,5 +1,3 @@
-import type { FastifyContextConfig } from "fastify";
-
 export const fastifyConfig = {
   logger: {
     transport: {
