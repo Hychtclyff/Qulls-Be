@@ -6,7 +6,7 @@ import {
   boolean,
   timestamp,
 } from "drizzle-orm/pg-core";
-import { timestamps } from "../helpers/schema.helpers.js";
+import { timestamps } from "../helpers/timestamp.js";
 
 export const blogPostTable = pgTable("blog_post", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),

@@ -9,10 +9,11 @@
     // See also https://aka.ms/tsconfig/module
     "module": "nodenext",
     "target": "esnext",
-    "types": [],
+    // "types": [],
     // For nodejs:
     // "lib": ["esnext"],
-    // "types": ["node"],
+    "types": ["node"],
+    // "moduleResolution": "bundler",
     // and npm install -D @types/node
 
     // Other Outputs
@@ -39,6 +40,9 @@
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
-    "skipLibCheck": true,
-  }
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*", "drizzle.config.ts", "commitlint.config.js"],
+
+  "exclude": ["node_modules"]
 }

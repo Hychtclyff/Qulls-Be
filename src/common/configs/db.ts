@@ -1,6 +1,6 @@
 import { drizzle } from "drizzle-orm/singlestore";
 import { Pool } from "pg";
-import * as schema from "./index.js";
+import * as schema from "../db/schema/index.js";
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,

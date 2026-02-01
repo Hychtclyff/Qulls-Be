@@ -1,5 +1,5 @@
 import { pgTable, integer, varchar, date, text } from "drizzle-orm/pg-core";
-import { timestamps } from "../helpers/schema.helpers.js";
+import { timestamps } from "../helpers/timestamp.js";
 
 export const experienceTable = pgTable("experience", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
