@@ -28,6 +28,7 @@
     "@sinclair/typebox": "^0.34.48",
     "drizzle-orm": "^0.45.1",
     "fastify": "^5.7.2",
+    "pg": "^8.18.0",
     "postgres": "^3.4.8",
     "typescript-eslint": "^8.54.0"
   },

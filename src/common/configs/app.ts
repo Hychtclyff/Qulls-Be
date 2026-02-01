@@ -9,12 +9,14 @@ import fastifySensible from "@fastify/sensible";
 import { globalErrorHandler } from "../errors/error-handler.js";
 import { apiRouter } from "../../routes/index.js";
 import { fastifyConfig } from "./fastify.config.js";
+import cors from "@fastify/cors";
 
 export const buildUp = async () => {
   const app = Fastify(fastifyConfig).withTypeProvider<TypeBoxTypeProvider>();
 
   await app.register(fastifyEnv, envConfig);
 
+  app.register(cors, { origin: "*" });
   app.register(swagger, swaggerConfig);
 
   app.register(swaggerUi, swaggerUiConfig);

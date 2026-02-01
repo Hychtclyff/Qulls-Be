@@ -1,5 +1,5 @@
 import { buildUp } from "./common/configs/app.js";
-
+import "dotenv/config";
 const start = async () => {
   const app = await buildUp();
 

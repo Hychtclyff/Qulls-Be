@@ -4,7 +4,7 @@ import type { FastifyRequest } from "fastify/types/request.js";
 export const globalErrorHandler = (
   error: FastifyError,
   request: FastifyRequest,
-  reply: FastifyReply
+  reply: FastifyReply,
 ) => {
   if (!error.statusCode || error.statusCode >= 500) {
     request.log.error(error);
@@ -32,7 +32,7 @@ export const globalErrorHandler = (
 
   return reply.status(500).send({
     status: "fail",
-    type: "INTERNA;_SERVER_ERROR",
+    type: "INTERNAL_SERVER_ERROR",
     message: "Terjadi Kesalahan Pada Server. Silahkan Coba Lagi Nanti! ",
     debug: process.env.NODE_ENV === "development" ? error.message : undefined,
   });
