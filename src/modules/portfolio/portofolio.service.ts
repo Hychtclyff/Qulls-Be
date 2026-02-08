@@ -1,28 +1,67 @@
-import { eq } from "drizzle-orm";
 import { db } from "../../common/configs/db.js";
-import { experienceTable } from "../../common/db/schema/experiences.js";
-import { profileTable } from "../../common/db/schema/profile.js";
-import { projectTable } from "../../common/db/schema/projects.js";
-import { skillTable } from "../../common/db/schema/skills.js";
 import { Error404 } from "../../common/errors/http-error.js";
 
 export const getSummaryService = async () => {
-  const [profileData, skillsData, projectData, experienceData] =
-    await Promise.all([
-      db.select().from(profileTable).limit(1),
-      db.select().from(skillTable),
-      db.select().from(projectTable).where(eq(projectTable.isFeatured, true)),
-      db.select().from(experienceTable),
-    ]);
+  const [
+    profileData,
+    socialLinksData,
+    servicesData,
+    skillsData,
+    projectData,
+    experienceData,
+    educationData,
+    certificationData,
+  ] = await Promise.all([
+    db.query.profiles.findFirst(),
+    db.query.socialLinks.findMany(),
+    db.query.services.findMany(),
+    db.query.skills.findMany(),
 
-  if (!profileData.length) {
-    throw new Error404("Profile Not Found!");
+    // PERBAIKAN 1: Gunakan nama relasi 'projectSkills' (bukan 'skills')
+    db.query.projects.findMany({
+      orderBy: (projects, { asc }) => [asc(projects.id)], // Gunakan sortOrder jika ada
+      with: {
+        skills: {
+          with: {
+            skill: true,
+          },
+        },
+      },
+    }),
+
+    db.query.experiences.findMany({
+      orderBy: (experiences, { desc }) => [desc(experiences.id)],
+    }),
+    db.query.education.findMany({
+      orderBy: (education, { desc }) => [desc(education.period)],
+    }),
+    db.query.certifications.findMany(),
+  ]);
+
+  if (!profileData) {
+    throw new Error404("Profile Not Found! Please run seed script.");
   }
 
+  // PERBAIKAN 2: Mapping array techStack dari 'projectSkills'
+  const formattedProjects = projectData.map((project) => ({
+    ...project,
+    techStack: project.skills.map((ps) => ps.skill), // Mapping dari pivot
+    projectSkills: undefined, // Bersihkan pivot asli
+  }));
+
+  const profileWithSocials = {
+    ...profileData,
+    socialLinks: socialLinksData ?? [],
+  };
+
+  // Return data mentah (Controller yang akan membungkusnya dengan 'data')
   return {
-    profile: profileData[0] ?? [],
+    profile: profileWithSocials,
+    services: servicesData ?? [],
     skills: skillsData ?? [],
-    featuredProjects: projectData ?? [],
+    projects: formattedProjects ?? [],
     experiences: experienceData ?? [],
+    education: educationData ?? [],
+    certifications: certificationData ?? [],
   };
 };

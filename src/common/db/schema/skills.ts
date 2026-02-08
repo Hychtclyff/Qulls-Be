@@ -1,31 +1,23 @@
-import { pgTable, integer, varchar, boolean } from "drizzle-orm/pg-core";
-import { timestamps } from "../helpers/timestamp.js";
+import { relations } from "drizzle-orm";
+import {
+  pgTable,
+  integer,
+  varchar,
+  boolean,
+  serial,
+  pgEnum,
+} from "drizzle-orm/pg-core";
 
-export const skillCategoryTable = pgTable("skill_category", {
-  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+export const skillCategoryEnum = pgEnum("skill_category", [
+  "frontend",
+  "backend",
+  "tools",
+  "automation",
+  "soft_skills",
+]);
 
-  name: varchar("name", { length: 50 }).notNull(),
-  sortOrder: integer("sort_order").default(0),
-
-  ...timestamps,
+export const skills = pgTable("skills", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  category: skillCategoryEnum("category").notNull(), // Menggunakan enum di kolom
 });
-
-export const skillTable = pgTable("skill", {
-  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
-
-  categoryId: integer("category_id").references(() => skillCategoryTable.id),
-
-  name: varchar("name", { length: 50 }).notNull(),
-  iconKey: varchar("icon_key", { length: 50 }),
-
-  proficiency: integer("proficiency"),
-  isFeatured: boolean("is_featured").default(false),
-
-  ...timestamps,
-});
-
-export type SkillCategory = typeof skillCategoryTable.$inferSelect;
-export type NewSkillCategory = typeof skillCategoryTable.$inferInsert;
-
-export type Skill = typeof skillTable.$inferSelect;
-export type NewSkill = typeof skillTable.$inferInsert;

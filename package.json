@@ -8,7 +8,12 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "db:generate": "node --import tsx node_modules/drizzle-kit/bin.cjs generate",
-    "db:migrate": "drizzle-kit migrate",
+    "db:migrate": "node --import tsx node_modules/drizzle-kit/bin.cjs migrate",
+    "db:push": "node --import tsx node_modules/drizzle-kit/bin.cjs push",
+    "db:drop": "node --import tsx node_modules/drizzle-kit/bin.cjs drop",
+    "db:reset": "npm run db:drop && node --import tsx node_modules/drizzle-kit/bin.cjs push --force",
+    "db:seed": "npx tsx ./src/common/db/seed/index.ts",
+    "db:setup": "npm run db:reset && npm run db:seed",
     "prepare": "husky install",
     "commit": "cz"
   },

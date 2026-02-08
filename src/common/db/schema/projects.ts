@@ -5,28 +5,22 @@ import {
   text,
   jsonb,
   boolean,
+  serial,
 } from "drizzle-orm/pg-core";
 import { timestamps } from "../helpers/timestamp.js";
+import { profiles } from "./profile.js";
 
-export const projectTable = pgTable("project", {
-  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
-
-  title: varchar("title", { length: 200 }).notNull(),
-  slug: varchar("slug", { length: 200 }).notNull().unique(),
-
-  summary: text("summary"),
-  contentMarkdown: text("content_markdown"),
-
-  thumbnailUrl: text("thumbnail_url"),
-  demoUrl: varchar("demo_url", { length: 255 }),
-  repoUrl: varchar("repo_url", { length: 255 }),
-
-  metrics: jsonb("metrics"),
-
-  isFeatured: boolean("is_featured").default(false),
+export const projects = pgTable("projects", {
+  id: serial("id").primaryKey(),
+  profileId: integer("profile_id").references(() => profiles.id),
+  titleId: varchar("title_id", { length: 255 }),
+  titleEn: varchar("title_en", { length: 255 }),
+  descId: text("desc_id"),
+  descEn: text("desc_en"),
+  imageUrl: varchar("image_url", { length: 500 }),
+  statLabelId: varchar("stat_label_id", { length: 100 }),
+  statLabelEn: varchar("stat_label_en", { length: 100 }),
+  statValue: varchar("stat_value", { length: 100 }),
 
   ...timestamps,
 });
-
-export type Project = typeof projectTable.$inferSelect;
-export type NewProject = typeof projectTable.$inferInsert;

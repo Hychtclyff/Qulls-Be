@@ -1,23 +1,24 @@
-import { pgTable, integer, varchar, date, text } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  integer,
+  varchar,
+  date,
+  text,
+  serial,
+} from "drizzle-orm/pg-core";
 import { timestamps } from "../helpers/timestamp.js";
+import { profiles } from "./profile.js";
 
-export const certificationTable = pgTable("certification", {
-  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
-
-  name: varchar("name", { length: 200 }).notNull(),
-  issuer: varchar("issuer", { length: 100 }).notNull(),
-
-  issueDate: date("issue_date"),
-
-  credentialId: varchar("credential_id", { length: 100 }),
-  credentialUrl: varchar("credential_url", { length: 255 }),
-
-  imageUrl: text("image_url"),
-
-  skillsTags: text("skills_tags").array(),
+export const certifications = pgTable("certification", {
+  id: serial("id").primaryKey(),
+  profileId: integer("profile_id").references(() => profiles.id),
+  name: varchar("name", { length: 255 }),
+  issuer: varchar("issuer", { length: 255 }),
+  year: varchar("year", { length: 50 }),
+  imageUrl: varchar("image_url", { length: 500 }),
+  credentialId: varchar("credential_id", { length: 255 }),
+  descId: text("desc_id"),
+  descEn: text("desc_en"),
 
   ...timestamps,
 });
-
-export type Certification = typeof certificationTable.$inferSelect;
-export type NewCertification = typeof certificationTable.$inferInsert;

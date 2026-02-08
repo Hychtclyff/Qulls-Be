@@ -1,83 +1,149 @@
 export const getSummarySchema = {
   tags: ["Summary"],
   summary: "Get portfolio summary",
-  description: "Get profile, skills, featured projects, and experiences",
+  description:
+    "Get full portfolio data including profile, projects, and experiences",
   response: {
     200: {
       type: "object",
-      required: ["success", "data"],
+      required: ["success", "message", "data"],
       properties: {
         success: { type: "boolean" },
-
+        message: { type: "string" },
         data: {
           type: "object",
-          required: ["profile", "skills", "featuredProjects", "experiences"],
+          required: [
+            "profile",
+            "services",
+            "skills",
+            "projects",
+            "experiences",
+            "education",
+            "certifications",
+          ],
           properties: {
             /* ================= PROFILE ================= */
             profile: {
               type: "object",
-              required: ["id", "fullName", "professionalTitle"],
+              required: ["id", "fullName", "roleId", "email"],
               properties: {
                 id: { type: "number" },
                 fullName: { type: "string" },
-                professionalTitle: { type: "string" },
-                bioShort: { type: "string", nullable: true },
-                avatarUrl: { type: "string", nullable: true },
-                resumeUrl: { type: "string", nullable: true },
-                statusLabel: { type: "string", nullable: true },
-                statusColor: { type: "string", nullable: true },
-              },
-            },
+                roleId: { type: "string" },
+                roleEn: { type: "string" },
+                level: { type: "string" },
+                imageUrl: { type: "string" },
+                email: { type: "string" },
+                locationId: { type: "string" },
+                locationEn: { type: "string", nullable: true },
+                aboutId: { type: "string", nullable: true },
+                aboutEn: { type: "string", nullable: true },
+                createdAt: { type: "string" }, // format: date-time optional
+                updatedAt: { type: "string" },
 
-            /* ================= SKILLS ================= */
-            skills: {
-              type: "array",
-              items: {
-                type: "object",
-                required: ["category", "items"],
-                properties: {
-                  category: { type: "string" },
+                // Nested Social Links
+                socialLinks: {
+                  type: "array",
                   items: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      required: ["name", "iconKey", "proficiency"],
-                      properties: {
-                        name: { type: "string" },
-                        iconKey: { type: "string" },
-                        proficiency: {
-                          type: "number",
-                          minimum: 0,
-                          maximum: 100,
-                        },
-                      },
+                    type: "object",
+                    properties: {
+                      id: { type: "number" },
+                      profileId: { type: "number" },
+                      name: { type: "string" },
+                      handle: { type: "string" },
+                      url: { type: "string" },
+                      iconName: { type: "string" },
+                      bgColor: { type: "string" },
+                      textColor: { type: "string" },
                     },
                   },
                 },
               },
             },
 
-            /* ================= FEATURED PROJECTS ================= */
-            featuredProjects: {
+            /* ================= SERVICES ================= */
+            services: {
               type: "array",
               items: {
                 type: "object",
-                required: ["id", "title", "slug"],
                 properties: {
                   id: { type: "number" },
-                  title: { type: "string" },
-                  slug: { type: "string" },
-                  summary: { type: "string", nullable: true },
-                  thumbnailUrl: { type: "string", nullable: true },
+                  profileId: { type: "number" },
+                  serviceKey: { type: "string" },
+                  iconName: { type: "string" },
+                  colorClass: { type: "string" },
+                  bgClass: { type: "string" },
+                  descId: { type: "string" },
+                  descEn: { type: "string" },
+                  createdAt: { type: "string" },
+                  updatedAt: { type: "string" },
+                },
+              },
+            },
 
-                  metrics: {
-                    type: "object",
-                    additionalProperties: { type: "string" },
+            /* ================= SKILLS (Global List) ================= */
+            skills: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  id: { type: "number" },
+                  name: { type: "string" },
+                  category: { type: "string" },
+                },
+              },
+            },
+
+            /* ================= PROJECTS ================= */
+            projects: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  id: { type: "number" },
+                  profileId: { type: "number" },
+                  titleId: { type: "string" },
+                  titleEn: { type: "string" },
+                  descId: { type: "string" },
+                  descEn: { type: "string" },
+                  imageUrl: { type: "string" },
+                  statLabelId: { type: "string" },
+                  statLabelEn: { type: "string" },
+                  statValue: { type: "string" },
+                  createdAt: { type: "string" },
+                  updatedAt: { type: "string" },
+
+                  // Array 1: Raw Pivot (Dari JSON kamu terlihat masih ada)
+                  skills: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        projectId: { type: "number" },
+                        skillId: { type: "number" },
+                        skill: {
+                          type: "object",
+                          properties: {
+                            id: { type: "number" },
+                            name: { type: "string" },
+                            category: { type: "string" },
+                          },
+                        },
+                      },
+                    },
                   },
 
-                  tags: {
+                  // Array 2: Flattened Tech Stack (Yang lebih rapi)
+                  techStack: {
                     type: "array",
-                    items: { type: "string" },
+                    items: {
+                      type: "object",
+                      properties: {
+                        id: { type: "number" },
+                        name: { type: "string" },
+                        category: { type: "string" },
+                      },
+                    },
                   },
                 },
               },
@@ -88,33 +154,61 @@ export const getSummarySchema = {
               type: "array",
               items: {
                 type: "object",
-                required: [
-                  "id",
-                  "companyName",
-                  "roleTitle",
-                  "employmentType",
-                  "startDate",
-                  //   "isCurrent",
-                ],
                 properties: {
                   id: { type: "number" },
-                  companyName: { type: "string" },
-                  roleTitle: { type: "string" },
-                  employmentType: { type: "string" },
-                  startDate: {
-                    type: "string",
-                    format: "date-time",
-                  },
-                  endDate: {
-                    type: "string",
-                    format: "date-time",
-                    nullable: true,
-                  },
-                  description: {
-                    type: "string",
-                    nullable: true,
-                  },
-                  isCurrent: { type: "boolean" },
+                  profileId: { type: "number" },
+                  company: { type: "string" },
+                  roleId: { type: "string" },
+                  roleEn: { type: "string" },
+                  period: { type: "string" },
+                  jobType: { type: "string" },
+                  descId: { type: "string" },
+                  descEn: { type: "string" },
+                  certificationId: { type: "number", nullable: true },
+                  projectId: { type: "number", nullable: true },
+                  createdAt: { type: "string" },
+                  updatedAt: { type: "string" },
+                },
+              },
+            },
+
+            /* ================= EDUCATION ================= */
+            education: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  id: { type: "number" },
+                  profileId: { type: "number" },
+                  degreeId: { type: "string" },
+                  degreeEn: { type: "string" },
+                  school: { type: "string" },
+                  period: { type: "string" },
+                  descId: { type: "string" },
+                  descEn: { type: "string" },
+                  createdAt: { type: "string" },
+                  updatedAt: { type: "string" },
+                },
+              },
+            },
+
+            /* ================= CERTIFICATIONS ================= */
+            certifications: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  id: { type: "number" },
+                  profileId: { type: "number" },
+                  name: { type: "string" },
+                  issuer: { type: "string" },
+                  year: { type: "string" },
+                  imageUrl: { type: "string" },
+                  credentialId: { type: "string" },
+                  descId: { type: "string" },
+                  descEn: { type: "string" },
+                  createdAt: { type: "string" },
+                  updatedAt: { type: "string" },
                 },
               },
             },

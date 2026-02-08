@@ -1,23 +1,30 @@
-import { pgTable, integer, varchar, date, text } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  integer,
+  varchar,
+  date,
+  text,
+  serial,
+} from "drizzle-orm/pg-core";
 import { timestamps } from "../helpers/timestamp.js";
+import { certifications } from "./certifications.js";
+import { profiles } from "./profile.js";
+import { projects } from "./projects.js";
 
-export const experienceTable = pgTable("experience", {
-  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
-
-  companyName: varchar("company_name", { length: 100 }).notNull(),
-  roleTitle: varchar("role_title", { length: 100 }).notNull(),
-  employmentType: varchar("employment_type", { length: 50 }), // "Full-time", "Contract"
-
-  startDate: date("start_date").notNull(),
-  endDate: date("end_date"),
-
-  description: text("description"),
-  companyLogoUrl: text("company_logo_url"),
-
-  sortOrder: integer("sort_order").default(0),
+export const experiences = pgTable("experiences", {
+  id: serial("id").primaryKey(),
+  profileId: integer("profile_id").references(() => profiles.id),
+  company: varchar("company", { length: 255 }),
+  roleId: varchar("role_id", { length: 255 }),
+  roleEn: varchar("role_en", { length: 255 }),
+  period: varchar("period", { length: 100 }),
+  jobType: varchar("job_type", { length: 100 }),
+  descId: text("desc_id"),
+  descEn: text("desc_en"),
+  certificationId: integer("certification_id").references(
+    () => certifications.id,
+  ),
+  projectId: integer("project_id").references(() => projects.id),
 
   ...timestamps,
 });
-
-export type Experience = typeof experienceTable.$inferSelect;
-export type NewExperience = typeof experienceTable.$inferInsert;
