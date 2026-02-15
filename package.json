@@ -15,7 +15,8 @@
     "db:seed": "npx tsx ./src/common/db/seed/index.ts",
     "db:setup": "npm run db:reset && npm run db:seed",
     "prepare": "husky install",
-    "commit": "cz"
+    "commit": "cz",
+    "gen:module": "mkdir $1 && touch $1/$1.{controller,route,schema,service}.ts"
   },
   "keywords": [],
   "author": "",
@@ -32,6 +33,7 @@
     "@fastify/type-provider-typebox": "^6.1.0",
     "@sinclair/typebox": "^0.34.48",
     "drizzle-orm": "^0.45.1",
+    "drizzle-typebox": "^0.3.3",
     "fastify": "^5.7.2",
     "pg": "^8.18.0",
     "postgres": "^3.4.8",

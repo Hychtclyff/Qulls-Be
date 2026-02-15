@@ -2,66 +2,89 @@ import { db } from "../../common/configs/db.js";
 import { Error404 } from "../../common/errors/http-error.js";
 
 export const getSummaryService = async () => {
-  const [
-    profileData,
-    socialLinksData,
-    servicesData,
-    skillsData,
-    projectData,
-    experienceData,
-    educationData,
-    certificationData,
-  ] = await Promise.all([
-    db.query.profiles.findFirst(),
-    db.query.socialLinks.findMany(),
-    db.query.services.findMany(),
-    db.query.skills.findMany(),
+  const [profile, skills, projects, experiences, education, certifications] =
+    await Promise.all([
+      db.query.profiles.findFirst({
+        with: {
+          socialLinks: true,
+        },
+      }),
 
-    // PERBAIKAN 1: Gunakan nama relasi 'projectSkills' (bukan 'skills')
-    db.query.projects.findMany({
-      orderBy: (projects, { asc }) => [asc(projects.id)], // Gunakan sortOrder jika ada
-      with: {
-        skills: {
-          with: {
-            skill: true,
+      db.query.skills.findMany({
+        orderBy: (skills, { asc }) => [
+          asc(skills.categoryId),
+          asc(skills.name),
+        ],
+        with: {
+          category: true,
+        },
+      }),
+
+      db.query.projects.findMany({
+        where: (projects, { eq }) => eq(projects.public, true),
+        orderBy: (projects, { desc }) => [desc(projects.id)],
+        with: {
+          method: true,
+          skills: {
+            with: {
+              skill: {
+                with: {
+                  category: true,
+                },
+              },
+            },
           },
         },
-      },
-    }),
+      }),
 
-    db.query.experiences.findMany({
-      orderBy: (experiences, { desc }) => [desc(experiences.id)],
-    }),
-    db.query.education.findMany({
-      orderBy: (education, { desc }) => [desc(education.period)],
-    }),
-    db.query.certifications.findMany(),
-  ]);
+      db.query.experiences.findMany({
+        orderBy: (experiences, { desc }) => [desc(experiences.id)],
+      }),
 
-  if (!profileData) {
+      db.query.education.findMany({
+        orderBy: (education, { desc }) => [desc(education.period)],
+      }),
+
+      db.query.certifications.findMany({
+        orderBy: (certifications, { desc }) => [desc(certifications.year)],
+        with: {
+          issuer: true,
+        },
+      }),
+    ]);
+
+  if (!profile) {
     throw new Error404("Profile Not Found! Please run seed script.");
   }
 
-  // PERBAIKAN 2: Mapping array techStack dari 'projectSkills'
-  const formattedProjects = projectData.map((project) => ({
+  const formattedProjects = projects.map((project) => ({
     ...project,
-    techStack: project.skills.map((ps) => ps.skill), // Mapping dari pivot
-    projectSkills: undefined, // Bersihkan pivot asli
+
+    techStack: project.skills.map((ps) => ({
+      ...ps.skill,
+      category: ps.skill.category?.name || "Uncategorized",
+    })),
+
+    skills: undefined,
   }));
 
-  const profileWithSocials = {
-    ...profileData,
-    socialLinks: socialLinksData ?? [],
-  };
+  const formattedSkills = skills.map((skill) => ({
+    ...skill,
+    category: skill.category?.name || "Uncategorized",
+  }));
 
-  // Return data mentah (Controller yang akan membungkusnya dengan 'data')
+  const formattedCertifications = certifications.map((cert) => ({
+    ...cert,
+    issuer: cert.issuer?.name || "Unknown Issuer",
+  }));
+
   return {
-    profile: profileWithSocials,
-    services: servicesData ?? [],
-    skills: skillsData ?? [],
-    projects: formattedProjects ?? [],
-    experiences: experienceData ?? [],
-    education: educationData ?? [],
-    certifications: certificationData ?? [],
+    profile,
+    services: [],
+    skills: formattedSkills,
+    projects: formattedProjects,
+    experiences,
+    education,
+    certifications: formattedCertifications,
   };
 };

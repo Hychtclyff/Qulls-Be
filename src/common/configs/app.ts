@@ -16,7 +16,12 @@ export const buildUp = async () => {
 
   await app.register(fastifyEnv, envConfig);
 
-  app.register(cors, { origin: "*" });
+  app.register(cors, {
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  });
+
   app.register(swagger, swaggerConfig);
 
   app.register(swaggerUi, swaggerUiConfig);

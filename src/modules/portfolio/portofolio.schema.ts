@@ -25,7 +25,7 @@ export const getSummarySchema = {
             /* ================= PROFILE ================= */
             profile: {
               type: "object",
-              required: ["id", "fullName", "roleId", "email"],
+              required: ["id", "fullName", "roleId", "email", "locationId"],
               properties: {
                 id: { type: "number" },
                 fullName: { type: "string" },

@@ -2,170 +2,370 @@ import { db } from "../../configs/db.js";
 import * as schema from "../schema/index.js";
 
 async function main() {
-  console.log("⏳ Memulai proses seeding data portofolio...");
+  console.log("⏳ Memulai proses seeding data portofolio & Life OS...");
 
   try {
-    // 1. Bersihkan Data (Urutan hapus: Pivot -> Child -> Parent)
+    // ==========================================
+    // 1. CLEANUP (Membersihkan Database)
+    // ==========================================
+    console.log("🧹 Membersihkan database lama...");
+
+    // A. Hapus Child / Pivot Tables (Relasi Banyak-ke-Banyak)
     await db.delete(schema.projectSkills);
-    await db.delete(schema.certSkills);
+    await db.delete(schema.projectMembers);
+    await db.delete(schema.postTags);
+    await db.delete(schema.socialLinks);
+
+    // B. Hapus Data Transaksional / Dependen
+    await db.delete(schema.tasks); // Tasks punya FK ke Projects
+    await db.delete(schema.projects); // Projects punya FK ke Experiences & Methods
+
+    // C. Hapus Data Utama (Parent Tables)
     await db.delete(schema.experiences);
     await db.delete(schema.education);
-    await db.delete(schema.certifications);
-    await db.delete(schema.projects);
-    await db.delete(schema.services);
-    await db.delete(schema.socialLinks);
     await db.delete(schema.skills);
+    await db.delete(schema.certifications);
+    await db.delete(schema.posts);
+
+    // D. Hapus Data Life OS
+    await db.delete(schema.schedules);
+    await db.delete(schema.finances);
+    await db.delete(schema.strategies);
+    await db.delete(schema.habits);
+    await db.delete(schema.notes);
+    await db.delete(schema.inbox);
+    await db.delete(schema.footballMatches);
+    await db.delete(schema.analyticsDaily);
+    await db.delete(schema.githubContributions);
+
+    // E. Hapus Master Data & Profile (Root References)
     await db.delete(schema.profiles);
+    await db.delete(schema.skillCategories);
+    await db.delete(schema.developmentMethods);
+    await db.delete(schema.certificateIssuers);
+    await db.delete(schema.tags);
 
-    console.log("🧹 Database dibersihkan.");
+    console.log("✅ Database bersih.");
 
-    // 2. Profile
-    const [profile] = await db
-      .insert(schema.profiles)
-      .values({
-        fullName: "Yudriqul Aulia",
-        roleId: "Automation Engineer & Fullstack Developer",
-        roleEn: "Automation Engineer & Fullstack Developer",
-        level: "Intermediate",
-        email: "yudriqul@example.com",
-        locationId: "Indonesia",
-        imageUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Yudriqul",
-      })
-      .returning();
+    // ==========================================
+    // 2. SEEDING MASTER DATA (REFERENCES)
+    // ==========================================
 
-    // 3. Social Links
-    await db.insert(schema.socialLinks).values([
-      {
-        profileId: profile?.id,
-        name: "LinkedIn",
-        handle: "yudriqul-aulia",
-        url: "https://linkedin.com/in/yudriqul-aulia",
-        iconName: "Linkedin",
-        bgColor: "bg-blue-50",
-        textColor: "text-blue-700",
-      },
-      {
-        profileId: profile?.id,
-        name: "GitHub",
-        handle: "yudriqul",
-        url: "https://github.com/yudriqul",
-        iconName: "Github",
-        bgColor: "bg-slate-100",
-        textColor: "text-slate-800",
-      },
-    ]);
+    // A. Skill Categories
+    // const skillCats = await db
+    //   .insert(schema.skillCategories)
+    //   .values([
+    //     { name: "Sword Skill (Frontend)", iconName: "Layout" },
+    //     { name: "Sacred Arts (Backend)", iconName: "Server" },
+    //     { name: "Incarnation (DevOps)", iconName: "Cloud" },
+    //     { name: "Blacksmithing (Tools)", iconName: "Wrench" },
+    //   ])
+    //   .returning();
 
-    // 4. Skills (Tech Stack)
-    const skills = await db
-      .insert(schema.skills)
-      .values([
-        { name: "Python", category: "automation" },
-        { name: "TypeScript", category: "frontend" },
-        { name: "Next.js", category: "frontend" },
-        { name: "PostgreSQL", category: "backend" },
-        { name: "Drizzle ORM", category: "backend" },
-        { name: "Docker", category: "tools" },
-      ])
-      .returning();
+    // // B. Development Methods
+    // const methods = await db
+    //   .insert(schema.developmentMethods)
+    //   .values([
+    //     { name: "Agile Scramble" },
+    //     { name: "Waterfall Cascade" },
+    //     { name: "Kanban Flow" },
+    //   ])
+    //   .returning();
 
-    const pythonSkill = skills.find((s) => s.name === "Python")!;
-    const nextSkill = skills.find((s) => s.name === "Next.js")!;
-    const pgSkill = skills.find((s) => s.name === "PostgreSQL")!;
+    // // C. Certificate Issuers
+    // const issuers = await db
+    //   .insert(schema.certificateIssuers)
+    //   .values([
+    //     {
+    //       name: "Cisco Systems",
+    //       logoUrl:
+    //         "https://upload.wikimedia.org/wikipedia/commons/6/64/Cisco_logo.svg",
+    //     },
+    //     {
+    //       name: "Google Cloud",
+    //       logoUrl:
+    //         "https://upload.wikimedia.org/wikipedia/commons/5/51/Google_Cloud_logo.svg",
+    //     },
+    //     {
+    //       name: "HackerRank",
+    //       logoUrl:
+    //         "https://upload.wikimedia.org/wikipedia/commons/6/65/HackerRank_logo.png",
+    //     },
+    //   ])
+    //   .returning();
 
-    // 5. Services
-    await db.insert(schema.services).values([
-      {
-        profileId: profile?.id,
-        serviceKey: "ai",
-        iconName: "Bot",
-        colorClass: "text-blue-600",
-        bgClass: "bg-blue-50",
-        descId: "Python, RPA, dan scripting otomasi.",
-        descEn: "Python, RPA, and automation scripting.",
-      },
-      {
-        profileId: profile?.id,
-        serviceKey: "web",
-        iconName: "Layout",
-        colorClass: "text-emerald-600",
-        bgClass: "bg-emerald-50",
-        descId: "Pengembangan aplikasi web modern dengan Next.js.",
-        descEn: "Modern web app development with Next.js.",
-      },
-    ]);
+    // if (!skillCats.length || !methods.length || !issuers.length) {
+    //   throw new Error("Gagal seeding master data.");
+    // }
 
-    // 6. Certifications
-    const [cert] = await db
-      .insert(schema.certifications)
-      .values({
-        profileId: profile?.id,
-        name: "CCST Networking",
-        issuer: "Cisco",
-        year: "2024",
-        imageUrl: "https://images.credly.com/images/networking-icon.png",
-        credentialId: "CERT-12345",
-        descId: "Sertifikasi keahlian jaringan dasar.",
-        descEn: "Basic networking skills certification.",
-      })
-      .returning();
+    // // ==========================================
+    // // 3. SEEDING PUBLIC PORTFOLIO
+    // // ==========================================
 
-    // 7. Projects
-    const [project] = await db
-      .insert(schema.projects)
-      .values({
-        profileId: profile?.id,
-        titleId: "Sistem Manajemen Gudang",
-        titleEn: "Warehouse Management System",
-        descId: "Otomasi inventaris menggunakan IoT dan Python.",
-        descEn: "Inventory automation using IoT and Python.",
-        imageUrl:
-          "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d",
-        statLabelId: "Efisiensi",
-        statLabelEn: "Efficiency",
-        statValue: "40%+",
-      })
-      .returning();
+    // // A. Profile
+    // const [profile] = await db
+    //   .insert(schema.profiles)
+    //   .values({
+    //     // Karena kita set ID default(1) di schema, kita tidak perlu kirim ID di sini
+    //     // kecuali mau memaksa overwrite.
+    //     fullName: "Yudriqul Aulia",
+    //     roleId: "Pengembang Fullstack & Otomasi",
+    //     roleEn: "Fullstack & Automation Engineer",
+    //     level: "Object Control Authority: 50",
+    //     aboutId:
+    //       "Saya adalah pengembang yang fokus pada efisiensi dan skalabilitas sistem.",
+    //     aboutEn:
+    //       "I am a developer focused on system efficiency and scalability.",
+    //     email: "yudriqul@example.com",
+    //     location: "Indonesia",
+    //     imageUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Yudriqul",
+    //     cvUrl: "https://example.com/cv.pdf",
+    //   })
+    //   .returning();
 
-    // 8. Education
-    await db.insert(schema.education).values({
-      profileId: profile?.id,
-      school: "Universitas Terkemuka",
-      degreeId: "Teknik Informatika",
-      degreeEn: "Informatics Engineering",
-      period: "2019 - 2023",
-      descId: "Fokus pada rekayasa perangkat lunak.",
-      descEn: "Focus on software engineering.",
-    });
+    // if (!profile) throw new Error("Gagal membuat profile");
 
-    // 9. Experiences
-    await db.insert(schema.experiences).values({
-      profileId: profile?.id,
-      company: "Tech Solutions Inc.",
-      roleId: "Automation Engineer",
-      roleEn: "Automation Engineer",
-      period: "2023 - Present",
-      jobType: "full_time",
-      descId: "Memimpin proyek otomasi internal perusahaan.",
-      descEn: "Leading internal company automation projects.",
-      projectId: project?.id,
-      certificationId: cert?.id,
-    });
+    // // B. Social Links
+    // await db.insert(schema.socialLinks).values([
+    //   {
+    //     profileId: profile.id,
+    //     name: "LinkedIn",
+    //     handle: "yudriqul-aulia",
+    //     url: "https://linkedin.com",
+    //     iconName: "Linkedin",
+    //     bgColor: "bg-blue-600",
+    //   },
+    //   {
+    //     profileId: profile.id,
+    //     name: "GitHub",
+    //     handle: "yudriqul",
+    //     url: "https://github.com",
+    //     iconName: "Github",
+    //     bgColor: "bg-slate-800",
+    //   },
+    //   {
+    //     profileId: profile.id,
+    //     name: "Twitter",
+    //     handle: "@yudriqul",
+    //     url: "https://twitter.com",
+    //     iconName: "Twitter",
+    //     bgColor: "bg-sky-500",
+    //   },
+    // ]);
 
-    // 10. Pivot Table (Many-to-Many: Project Skills)
-    if (project?.id && pythonSkill?.id && pgSkill?.id) {
-      await db.insert(schema.projectSkills).values([
-        { projectId: project.id, skillId: pythonSkill.id },
-        { projectId: project.id, skillId: pgSkill.id },
-      ]);
-    }
+    // // C. Skills
+    // const frontendCat = skillCats.find((c) => c.name.includes("Frontend"));
+    // const backendCat = skillCats.find((c) => c.name.includes("Backend"));
 
-    // 11. Pivot Table (Many-to-Many: Cert Skills)
-    if (cert?.id && pythonSkill?.id) {
-      await db
-        .insert(schema.certSkills)
-        .values([{ certificationId: cert.id, skillId: pythonSkill.id }]);
-    }
-    console.log("✨ Seeding selesai dengan sukses!");
+    // if (!frontendCat || !backendCat)
+    //   throw new Error("Kategori skill tidak ditemukan");
+
+    // // Kita simpan hasil insert ke variabel 'skills' (Array)
+    // const skills = await db
+    //   .insert(schema.skills)
+    //   .values([
+    //     {
+    //       name: "Next.js",
+    //       categoryId: frontendCat.id,
+    //       iconName: "Code",
+    //       proficiency: 90,
+    //     }, // index 0
+    //     {
+    //       name: "TypeScript",
+    //       categoryId: frontendCat.id,
+    //       iconName: "FileCode",
+    //       proficiency: 85,
+    //     }, // index 1
+    //     {
+    //       name: "Python",
+    //       categoryId: backendCat.id,
+    //       iconName: "Terminal",
+    //       proficiency: 95,
+    //     }, // index 2
+    //     {
+    //       name: "PostgreSQL",
+    //       categoryId: backendCat.id,
+    //       iconName: "Database",
+    //       proficiency: 80,
+    //     }, // index 3
+    //   ])
+    //   .returning();
+
+    // if (skills.length < 4) throw new Error("Gagal insert skills");
+
+    // // D. Experiences
+    // const [exp1] = await db
+    //   .insert(schema.experiences)
+    //   .values({
+    //     company: "Tech Solutions Inc.",
+    //     roleId: "Insinyur Otomasi",
+    //     roleEn: "Automation Engineer",
+    //     period: "2023 - Present",
+    //     jobType: "Full-time",
+    //     descId:
+    //       "Memimpin proyek otomasi internal menggunakan Python dan Selenium.",
+    //     descEn:
+    //       "Leading internal automation projects using Python and Selenium.",
+    //   })
+    //   .returning();
+
+    // // E. Projects
+    // const [project1] = await db
+    //   .insert(schema.projects)
+    //   .values({
+    //     titleId: "Sistem Manajemen Gudang",
+    //     titleEn: "Warehouse Management System",
+    //     descId: "Otomasi inventaris menggunakan IoT dan Python.",
+    //     descEn: "Inventory automation using IoT and Python.",
+    //     imageUrl:
+    //       "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d",
+    //     repoUrl: "https://github.com/yudriqul/wms-iot",
+    //     methodId: methods[0].id, // Agile
+    //     experienceId: exp1.id,
+    //     status: "Active",
+    //     progress: 85,
+    //     priority: "High",
+    //     isFeatured: true,
+    //     public: true,
+    //   })
+    //   .returning();
+
+    // // F. Project Skills (Pivot) - PERBAIKAN DI SINI
+    // // Kita gunakan index array dari variabel 'skills' di atas.
+    // await db.insert(schema.projectSkills).values([
+    //   { projectId: project1.id, skillId: skills[2].id }, // skills[2] adalah Python
+    //   { projectId: project1.id, skillId: skills[3].id }, // skills[3] adalah PostgreSQL
+    // ]);
+
+    // // G. Certifications
+    // await db.insert(schema.certifications).values({
+    //   name: "CCST Networking",
+    //   issuerId: issuers[0].id, // Cisco
+    //   year: "2024",
+    //   credentialId: "CERT-12345",
+    //   url: "https://credly.com",
+    // });
+
+    // // ==========================================
+    // // 4. SEEDING LIFE OS (ADMIN DASHBOARD)
+    // // ==========================================
+
+    // // A. Tasks
+    // await db.insert(schema.tasks).values([
+    //   {
+    //     title: "Optimize Database Queries",
+    //     status: "active",
+    //     priority: "Critical",
+    //     type: "Main Quest",
+    //     dueDate: "2026-05-30",
+    //     projectId: project1.id,
+    //   },
+    //   {
+    //     title: "Update Portfolio UI",
+    //     status: "todo",
+    //     priority: "Medium",
+    //     type: "Side Quest",
+    //     dueDate: "2026-06-05",
+    //   },
+    //   {
+    //     title: "Daily Commit Streak",
+    //     status: "active",
+    //     priority: "Low",
+    //     type: "Daily",
+    //     dueDate: "2026-05-24",
+    //   },
+    // ]);
+
+    // // B. Schedules
+    // await db.insert(schema.schedules).values([
+    //   {
+    //     title: "Weekly Team Sync",
+    //     type: "Briefing",
+    //     date: "2026-05-25",
+    //     startTime: "09:00",
+    //     endTime: "10:00",
+    //     location: "Zoom",
+    //     colorClass: "bg-indigo-100 text-indigo-700",
+    //   },
+    //   {
+    //     title: "Code Review Session",
+    //     type: "Mission",
+    //     date: "2026-05-25",
+    //     startTime: "14:00",
+    //     endTime: "16:00",
+    //     location: "Office",
+    //     colorClass: "bg-emerald-100 text-emerald-700",
+    //   },
+    // ]);
+
+    // // C. Finances
+    // await db.insert(schema.finances).values([
+    //   {
+    //     title: "Freelance Project Payment",
+    //     amount: "5000.00",
+    //     type: "income",
+    //     category: "Trade",
+    //     transactionDate: "2026-05-20",
+    //   },
+    //   {
+    //     title: "Server Hosting (Vercel)",
+    //     amount: "20.00",
+    //     type: "expense",
+    //     category: "Maintenance",
+    //     transactionDate: "2026-05-21",
+    //   },
+    //   {
+    //     title: "New Mechanical Keyboard",
+    //     amount: "150.00",
+    //     type: "expense",
+    //     category: "Consumables",
+    //     transactionDate: "2026-05-22",
+    //   },
+    // ]);
+
+    // // D. Strategies
+    // await db.insert(schema.strategies).values([
+    //   {
+    //     title: "Master React Server Components",
+    //     type: "short",
+    //     status: "In Progress",
+    //     deadline: "June 2026",
+    //     progress: 65,
+    //     category: "Skill",
+    //   },
+    //   {
+    //     title: "Become Senior Tech Lead",
+    //     type: "long",
+    //     status: "Locked",
+    //     deadline: "Year 2028",
+    //     progress: 0,
+    //     category: "Career",
+    //   },
+    // ]);
+
+    // // E. Football Widget
+    // await db.insert(schema.footballMatches).values([
+    //   {
+    //     opponentName: "Real Madrid",
+    //     competition: "La Liga",
+    //     matchDate: "2026-05-28",
+    //     matchTime: "21:00",
+    //     isHome: true,
+    //     homeScore: 3,
+    //     awayScore: 1,
+    //     status: "Finished",
+    //   },
+    //   {
+    //     opponentName: "Bayern Munich",
+    //     competition: "UCL Final",
+    //     matchDate: "2026-06-04",
+    //     matchTime: "20:45",
+    //     isHome: false,
+    //     status: "Upcoming",
+    //   },
+    // ]);
+
+    // console.log("✨ Seeding selesai dengan sukses!");
   } catch (error) {
     console.error("❌ Seeding gagal:", error);
     process.exit(1);
