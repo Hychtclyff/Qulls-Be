@@ -4,6 +4,8 @@ import {
   profiles,
   socialLinks as socialLinksTable,
 } from "../../common/db/schema/index.js";
+import { successResponse } from "../../common/utils/successResponse.js";
+import { idParamsSchema } from "../../common/schema/shared.js";
 
 const baseSelectProfile = createSelectSchema(profiles, {
   createdAt: Type.String(),
@@ -27,16 +29,8 @@ export const updateProfilePayloadSchema = Type.Partial(
   createProfilePayloadSchema,
 );
 
-export type ProfileParams = Static<typeof profileParamsSchema>;
 export type CreateProfileBody = Static<typeof createProfilePayloadSchema>;
 export type UpdateProfileBody = Static<typeof updateProfilePayloadSchema>;
-
-const successResponse = (dataSchema: any) =>
-  Type.Object({
-    success: Type.Boolean({ default: true }),
-    message: Type.String(),
-    data: dataSchema,
-  });
 
 export const getProfileSchema = {
   tags: ["profile"],
@@ -69,7 +63,7 @@ export const postProfileSchema = {
 export const patchProfileSchema = {
   tags: ["profile"],
   summary: "Update Profile",
-  params: profileParamsSchema,
+  params: idParamsSchema,
   body: updateProfilePayloadSchema,
   response: {
     200: successResponse(baseSelectProfile),
@@ -80,7 +74,7 @@ export const patchProfileSchema = {
 export const deleteProfileSchema = {
   tags: ["profile"],
   summary: "Delete Profile",
-  params: profileParamsSchema,
+  params: idParamsSchema,
   response: {
     200: successResponse(Type.Optional(baseSelectProfile)),
   },
@@ -88,7 +82,7 @@ export const deleteProfileSchema = {
 export const getProfileDetailSchema = {
   tags: ["profile"],
   summary: "Get profile by ID",
-  params: profileParamsSchema,
+  params: idParamsSchema,
   response: {
     200: successResponse(
       Type.Optional(

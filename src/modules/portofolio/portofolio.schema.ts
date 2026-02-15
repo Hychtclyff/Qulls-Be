@@ -25,7 +25,7 @@ export const getSummarySchema = {
             /* ================= PROFILE ================= */
             profile: {
               type: "object",
-              required: ["id", "fullName", "roleId", "email", "locationId"],
+              required: ["id", "fullName", "roleId", "email"],
               properties: {
                 id: { type: "number" },
                 fullName: { type: "string" },
@@ -34,11 +34,12 @@ export const getSummarySchema = {
                 level: { type: "string" },
                 imageUrl: { type: "string" },
                 email: { type: "string" },
-                locationId: { type: "string" },
+                // 2. Ubah nama property-nya agar sesuai dengan JSON kamu
+                location: { type: "string" },
                 locationEn: { type: "string", nullable: true },
                 aboutId: { type: "string", nullable: true },
                 aboutEn: { type: "string", nullable: true },
-                createdAt: { type: "string" }, // format: date-time optional
+                createdAt: { type: "string" },
                 updatedAt: { type: "string" },
 
                 // Nested Social Links

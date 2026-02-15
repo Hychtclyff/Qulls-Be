@@ -1,11 +1,8 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import * as profileService from "./profile.service.js";
 import { res200 } from "../../common/utils/response.js";
-import type {
-  CreateProfileBody,
-  UpdateProfileBody,
-  ProfileParams,
-} from "./profile.schema.js";
+import type { CreateProfileBody, UpdateProfileBody } from "./profile.schema.js";
+import type { idParams } from "../../common/schema/shared.js";
 
 export const profileController = {
   index: async (request: FastifyRequest, reply: FastifyReply) => {
@@ -18,7 +15,7 @@ export const profileController = {
   },
 
   show: async (
-    request: FastifyRequest<{ Params: ProfileParams }>,
+    request: FastifyRequest<{ Params: idParams }>,
     reply: FastifyReply,
   ) => {
     const { id } = request.params;
@@ -45,7 +42,7 @@ export const profileController = {
   },
 
   update: async (
-    request: FastifyRequest<{ Params: ProfileParams; Body: UpdateProfileBody }>,
+    request: FastifyRequest<{ Params: idParams; Body: UpdateProfileBody }>,
     reply: FastifyReply,
   ) => {
     const { id } = request.params;
@@ -62,7 +59,7 @@ export const profileController = {
   },
 
   destroy: async (
-    request: FastifyRequest<{ Params: ProfileParams }>,
+    request: FastifyRequest<{ Params: idParams }>,
     reply: FastifyReply,
   ) => {
     const { id } = request.params;
